@@ -4,7 +4,21 @@ let header = document.createElement('header');
 // Добавляем содержимое в header (убираем лишний тег <header> в строке innerHTML)
 header.innerHTML = `
 
-<nav>header</nav>
+<nav>
+    header
+</nav>
+
+<style>
+    nav {
+        width: 80%;
+        height: 80px;
+        border: solid;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto;
+    }
+</style>
 
 
 `;
@@ -13,9 +27,9 @@ header.innerHTML = `
 
 
 // Находим элемент, к которому будем добавлять header
-const body2 = document.body;
+const body = document.body;
 
 
 
 // Вставляем header в body
-body2.insertBefore(header, body2.firstChild);
+body.insertBefore(header, body.firstChild);
