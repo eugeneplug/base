@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     let sideBar = document.createElement('sidebar');
-    let container = document.querySelector('.container');
+    let container = document.querySelector('.container');  // обязательно добавлять компонент в какой либо из html блоков
    
 
     sideBar.innerHTML = `
@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     `;
 
-    // document.body.appendChild(sideBar);
+    
 
     if (container) {
         // Если элемент найден, добавляем sideBar внутрь container
