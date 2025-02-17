@@ -5,7 +5,7 @@ let header = document.createElement('header');
 header.innerHTML = `
 
 <nav>
-    header
+    header!
 </nav>
 
 <style>
