@@ -1,13 +1,13 @@
 <?php get_header(); ?>  <!--импорт хедера -->
 
-<?php wp_head(); ?>  <!--подключение скриптов и стлей (вставляется в header.php) -->
+<?php wp_head(); ?>  <!--подключение скриптов и стилей (вставляется в header.php) -->
 
 <?php get_footer(); ?> <!--импорт футера -->
 
 
 <!--вывод записи с определенным id (в данный момент вывод id3) -->
 
-<?php
+            <?php
             $args = array(
                 'category__in' => 3, // Рубрика с ID 3
                 'posts_per_page' => -1 // -1 обозначает что выводим все записи (если надо вывести определенное кол-во записей, то пишем нужное нам число)
@@ -18,7 +18,7 @@
                 while ($query->have_posts()):
                     $query->the_post();
                     ?>
-                    <div class="swiper-slide">
+                    <!-- <div class="swiper-slide">
                         <div
                             class="bg-gradient-to-r   <?php the_field('color_slider') ?> <?php the_field('color_slider2') ?>  text-white py-20">
                             <div class="container mx-auto px-4 text-center">
@@ -29,7 +29,7 @@
                                     больше</button>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                     <?php
                 endwhile;
                 wp_reset_postdata();
@@ -62,7 +62,7 @@
 
 
 
-<!-- вывод в acf свг изображений -->
+                            <!-- вывод в acf свг изображений -->
                             <?php
                                 $svg_code = get_field('svg');
                                 if ($svg_code) {
