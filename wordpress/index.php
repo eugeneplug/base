@@ -60,6 +60,9 @@
 <?php echo get_field('название_поля', $post_id); ?>  <!-- Получение поля для конкретного поста -->
 
 
+<img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/img/image 36.png"> <!--импорт изображения-->
+
+
 
 
                             <!-- вывод в acf свг изображений -->
