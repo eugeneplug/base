@@ -84,3 +84,22 @@
                                     echo $svg_code; // Выведет чистый SVG без изменений
                                 }
                             ?>
+
+
+
+
+<!-- вывод информациии в зависимости от url -->
+      <?php
+      $current_uri = $_SERVER['REQUEST_URI'];
+
+      if (strpos($current_uri, '/moscow/') !== false): ?>
+                  <div>Москва</div>
+
+      <?php elseif (strpos($current_uri, '/asia/') !== false): ?>
+                  <div>Азия</div>
+
+      <?php else: ?>
+                  <div>Не москва и не азия</div>
+        
+      <?php endif; ?>
+
