@@ -6,6 +6,7 @@
 
 <?php
 /* Template Name: какая-то страница */
+/* Template Post Type: post, catalog */
 get_header();
 ?>
 
