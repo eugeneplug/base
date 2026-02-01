@@ -109,3 +109,40 @@ get_header();
         
       <?php endif; ?>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- Вывод повторителя acf если он подкл к странице -->
+
+
+ <?php if (have_rows('f1')): // f1 - название повторителя ?>
+                <div class="faq-section">
+                    <?php while (have_rows('f1')):
+                        the_row(); ?>
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <h3><?php the_sub_field('f2'); // f2 - вопрос ?></h3>
+                                <div class="faq-icon"></div>
+                            </div>
+
+                            <div class="faq-answer">
+                                <div class="faq-answer-content">
+                                    <p><?php the_sub_field('f3'); // f3 - ответ ?></p>
+                                </div>
+
+                            </div>
+                        </div>
+                    <?php endwhile; ?>
+                </div>
+            <?php endif; ?>
+
