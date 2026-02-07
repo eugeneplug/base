@@ -1,1 +1,225 @@
 
+-- ============================================
+-- ПОЛНЫЙ СКРИПТ ПЕРЕНОСА WORDPRESS НА НОВЫЙ ДОМЕН
+-- Заменяем old-site.ru на example.com
+-- ============================================
+
+-- 1. ОСНОВНЫЕ НАСТРОЙКИ WORDPRESS
+-- -----------------------------------------------------------------
+-- Обновляем адрес сайта (WordPress URL)
+UPDATE wp_options 
+SET option_value = 'https://example.com' 
+WHERE option_name = 'siteurl';
+-- Комментарий: wp_options.siteurl - основной URL WordPress для генерации ссылок
+
+-- Обновляем домашний адрес (Site URL)
+UPDATE wp_options 
+SET option_value = 'https://example.com' 
+WHERE option_name = 'home';
+-- Комментарий: wp_options.home - URL главной страницы сайта
+
+-- Заменяем старый домен во ВСЕХ опциях (на всякий случай)
+UPDATE wp_options 
+SET option_value = 'https://example.com' 
+WHERE option_value LIKE '%old-site.ru%';
+-- Комментарий: Ищем и заменяем старый домен в любых настройках плагинов/тем
+
+-- 2. КОНТЕНТ ЗАПИСЕЙ И СТРАНИЦ
+-- -----------------------------------------------------------------
+-- Заменяем в основном контенте записей (http -> https нового домена)
+UPDATE wp_posts 
+SET post_content = REPLACE(post_content, 'http://old-site.ru', 'https://example.com');
+-- Комментарий: post_content содержит HTML-контент страниц. Заменяем HTTP старого домена
+
+-- Заменяем в основном контенте записей (https -> https нового домена)
+UPDATE wp_posts 
+SET post_content = REPLACE(post_content, 'https://old-site.ru', 'https://example.com');
+-- Комментарий: Аналогично для HTTPS ссылок старого домена
+
+-- 3. GUID - ГЛОБАЛЬНЫЕ УНИКАЛЬНЫЕ ИДЕНТИФИКАТОРЫ
+-- -----------------------------------------------------------------
+-- ОБЯЗАТЕЛЬНО! Заменяем в GUID (используются WordPress для внутренних ссылок)
+UPDATE wp_posts 
+SET guid = REPLACE(guid, 'http://old-site.ru', 'https://example.com');
+-- Комментарий: guid используется WordPress для идентификации медиафайлов и постов
+
+UPDATE wp_posts 
+SET guid = REPLACE(guid, 'https://old-site.ru', 'https://example.com');
+-- Комментарий: Дублируем для HTTPS
+
+-- 4. МЕТА-ДАННЫЕ ЗАПИСЕЙ (ПОЛЯ ACF, НАСТРОЙКИ И Т.Д.)
+-- -----------------------------------------------------------------
+-- Заменяем в произвольных полях записей
+UPDATE wp_postmeta 
+SET meta_value = REPLACE(meta_value, 'old-site.ru', 'example.com')
+WHERE meta_value LIKE '%old-site.ru%';
+-- Комментарий: postmeta хранит доп. поля (ACF). WHERE фильтр ускоряет запрос
+
+-- Заменяем полные URL в мета-полях
+UPDATE wp_postmeta 
+SET meta_value = REPLACE(meta_value, 'https://old-site.ru', 'https://example.com')
+WHERE meta_value LIKE '%old-site.ru%';
+
+-- 5. КОММЕНТАРИИ
+-- -----------------------------------------------------------------
+-- Заменяем в тексте комментариев
+UPDATE wp_comments 
+SET comment_content = REPLACE(comment_content, 'old-site.ru', 'example.com');
+-- Комментарий: На случай, если в комментариях есть ссылки на старый сайт
+
+-- Заменяем в URL авторов комментариев
+UPDATE wp_comments 
+SET comment_author_url = REPLACE(comment_author_url, 'old-site.ru', 'example.com');
+-- Комментарий: Заменяем сайты комментаторов (если ссылались на старый домен)
+
+-- 6. ПОЛЬЗОВАТЕЛИ И ИХ МЕТА-ДАННЫЕ
+-- -----------------------------------------------------------------
+-- Заменяем в мета-данных пользователей (аватарки, настройки)
+UPDATE wp_usermeta 
+SET meta_value = REPLACE(meta_value, 'old-site.ru', 'example.com')
+WHERE meta_value LIKE '%old-site.ru%';
+-- Комментарий: user_meta может хранить URL аватарок, профилей и т.д.
+
+-- 7. ТЕРМИНЫ И ТАКСОНОМИИ (РУБРИКИ, МЕТКИ)
+-- -----------------------------------------------------------------
+-- Заменяем в мета-данных терминов
+UPDATE wp_termmeta 
+SET meta_value = REPLACE(meta_value, 'old-site.ru', 'example.com')
+WHERE meta_value LIKE '%old-site.ru%';
+-- Комментарий: term_meta для доп. полей таксономий
+
+-- 8. ВИДЖЕТЫ И СЕРИАЛИЗОВАННЫЕ ДАННЫЕ
+-- -----------------------------------------------------------------
+-- ВАЖНО: Виджеты хранятся сериализованными (бинарные данные)
+UPDATE wp_options 
+SET option_value = REPLACE(option_value, 'old-site.ru', 'example.com')
+WHERE option_name LIKE '%widget%' OR option_name LIKE '%sidebars%';
+-- Комментарий: Виджеты и области виджетов. REPLACE работает с сериализованными данными
+
+-- 9. МЕНЮ И НАВИГАЦИЯ
+-- -----------------------------------------------------------------
+-- Заменяем в ссылках меню (пользовательские URL)
+UPDATE wp_postmeta 
+SET meta_value = REPLACE(meta_value, 'old-site.ru', 'example.com')
+WHERE meta_key IN ('_menu_item_url', '_menu_item_xfn');
+-- Комментарий: _menu_item_url - кастомные URL в меню, _menu_item_xfn - доп. атрибуты
+
+-- 10. ОЧИСТКА КЭШЕЙ И ТРАНЗИЕНТОВ
+-- -----------------------------------------------------------------
+-- Удаляем кэшированные данные (после смены домена они невалидны)
+DELETE FROM wp_options WHERE option_name LIKE '%_transient_%';
+-- Комментарий: Транзиенты - временные кэшированные данные WordPress
+
+DELETE FROM wp_options WHERE option_name LIKE '%_site_transient_%';
+-- Комментарий: Сетевые транзиенты (для multisite)
+
+-- Удаляем кэши конкретных плагинов
+DELETE FROM wp_options WHERE option_name LIKE '%cache%';
+-- Комментарий: Кэши плагинов (W3TC, WP Super Cache и др.)
+
+-- 11. ОТКЛЮЧЕНИЕ ПЛАГИНОВ (при проблемах с редиректами)
+-- -----------------------------------------------------------------
+-- ВРЕМЕННО отключаем ВСЕ плагины (если есть циклические редиректы)
+-- UPDATE wp_options 
+-- SET option_value = 'a:0:{}'
+-- WHERE option_name = 'active_plugins';
+-- Комментарий: a:0:{} - пустой сериализованный массив. После исправления включить плагины вручную
+
+-- 12. УДАЛЕНИЕ СТАРЫХ РЕДИРЕКТОВ
+-- -----------------------------------------------------------------
+-- Удаляем записи о редиректах из плагинов
+DELETE FROM wp_options WHERE option_name LIKE '%redirect%';
+-- Комментарий: Удаляем настройки плагинов редиректов (Redirection, SEO плагины)
+
+-- 13. ПРОВЕРОЧНЫЙ ЗАПРОС
+-- -----------------------------------------------------------------
+-- Ищем оставшиеся упоминания старого домена
+SELECT 
+    'posts' as table_name, 
+    COUNT(*) as count 
+FROM wp_posts 
+WHERE post_content LIKE '%old-site.ru%' 
+   OR guid LIKE '%old-site.ru%'
+UNION ALL
+SELECT 
+    'options', 
+    COUNT(*) 
+FROM wp_options 
+WHERE option_value LIKE '%old-site.ru%'
+UNION ALL
+SELECT 
+    'postmeta', 
+    COUNT(*) 
+FROM wp_postmeta 
+WHERE meta_value LIKE '%old-site.ru%'
+UNION ALL
+SELECT 
+    'comments', 
+    COUNT(*) 
+FROM wp_comments 
+WHERE comment_content LIKE '%old-site.ru%' 
+   OR comment_author_url LIKE '%old-site.ru%';
+-- Комментарий: Проверяем эффективность замен. Все COUNT должны быть 0
+
+-- 14. ОПТИМИЗАЦИЯ ТАБЛИЦ ПОСЛЕ МАССОВЫХ ОБНОВЛЕНИЙ
+-- -----------------------------------------------------------------
+OPTIMIZE TABLE wp_posts, wp_postmeta, wp_options, wp_term_relationships;
+-- Комментарий: Восстанавливает фрагментированные таблицы после UPDATE
+
+-- ============================================
+-- ДОПОЛНИТЕЛЬНО: ДЛЯ МУЛЬТИСАЙТОВ (MULTISITE)
+-- ============================================
+-- Для мультисайтов нужно также обновить:
+-- UPDATE wp_blogs SET domain = 'example.com' WHERE blog_id = 1;
+-- UPDATE wp_site SET domain = 'example.com' WHERE id = 1;
+
+-- ============================================
+-- ВАЖНЫЕ ЗАМЕЧАНИЯ:
+-- ============================================
+-- 1. ПЕРЕД ВЫПОЛНЕНИЕМ СДЕЛАЙТЕ БЭКАП БАЗЫ!
+-- 2. Замените old-site.ru и example.com на ваши домены
+-- 3. Префикс таблиц может быть не wp_, проверьте свой
+-- 4. Выполняйте в phpMyAdmin или через MySQL клиент
+-- 5. После замен проверьте сайт и админку
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- ОСНОВНОЕ (минимум что нужно сделать)
+UPDATE wp_options SET option_value = 'https://НОВЫЙ-ДОМЕН' WHERE option_name = 'siteurl';
+UPDATE wp_options SET option_value = 'https://НОВЫЙ-ДОМЕН' WHERE option_name = 'home';
+UPDATE wp_posts SET guid = REPLACE(guid, 'СТАРЫЙ-ДОМЕН', 'НОВЫЙ-ДОМЕН');
+UPDATE wp_posts SET post_content = REPLACE(post_content, 'СТАРЫЙ-ДОМЕН', 'НОВЫЙ-ДОМЕН');
+
+
+
+
+
+
+
+Что еще добавить в wp-config.php:
+
+// Принудительно устанавливаем домен (на случай проблем)
+define('WP_HOME', 'https://example.com');
+define('WP_SITEURL', 'https://example.com');
+
+// Отключаем канонические редиректы (временно при проблемах)
+// remove_filter('template_redirect', 'redirect_canonical');
