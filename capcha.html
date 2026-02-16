@@ -1,0 +1,461 @@
+
+<!-- Капча с ползунком -->
+                    <div class="captcha-container">
+                        <div class="captcha-header">
+                            <div class="captcha-title">Подтвердите, что вы не робот</div>
+                            <button type="button" class="captcha-reset">
+                                <i class="fas fa-redo-alt"></i> Сбросить
+                            </button>
+                        </div>
+
+                        <div class="captcha-track">
+                            <div class="captcha-progress"></div>
+                            <div class="captcha-slider">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                            <div class="captcha-text">Перетащите ползунок слева направо</div>
+                        </div>
+
+                        <div class="captcha-instruction">Перетащите ползунок до конца вправо</div>
+                        <div class="captcha-success">✓ Капча успешно пройдена!</div>
+                        <div class="captcha-error">Необходимо полностью перетащить ползунок</div>
+                    </div>
+
+
+
+
+
+<style>
+            /* Стили для капчи */
+            .captcha-container {
+                margin: 25px 0;
+                padding: 20px;
+                background: #f8fafc;
+                border-radius: 10px;
+                border: 1px solid #e1e5e9;
+            }
+
+            .captcha-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+
+            .captcha-title {
+                font-weight: 600;
+                color: #333;
+                font-size: 16px;
+            }
+
+            .captcha-reset {
+                background: none;
+                border: none;
+                color: #2575fc;
+                cursor: pointer;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                padding: 5px;
+                transition: color 0.2s;
+            }
+
+            .captcha-reset:hover {
+                color: #1a5fd8;
+            }
+
+            .captcha-reset i {
+                font-size: 12px;
+            }
+
+            .captcha-track {
+                background: #e9ecef;
+                height: 60px;
+                border-radius: 30px;
+                position: relative;
+                overflow: hidden;
+                border: 1px solid #d1d9e0;
+                user-select: none;
+                -webkit-user-select: none;
+                touch-action: none;
+            }
+
+            .captcha-slider {
+                position: absolute;
+                right: 0;
+                top: 0;
+                width: 60px;
+                height: 100%;
+                background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+                border-radius: 50%;
+                cursor: grab;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 18px;
+                box-shadow: 0 4px 12px rgba(37, 117, 252, 0.3);
+                transition: transform 0.1s, box-shadow 0.2s;
+                z-index: 2;
+            }
+
+            .captcha-slider:active {
+                cursor: grabbing;
+                transform: scale(0.98);
+                box-shadow: 0 2px 8px rgba(37, 117, 252, 0.4);
+            }
+
+            .captcha-slider i {
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0% {
+                    transform: scale(1);
+                }
+
+                50% {
+                    transform: scale(1.1);
+                }
+
+                100% {
+                    transform: scale(1);
+                }
+            }
+
+            .captcha-progress {
+                position: absolute;
+                left: 0;
+                top: 0;
+                height: 100%;
+                width: 0;
+                background: linear-gradient(to right, #4cd964, #5ac8fa);
+                border-radius: 30px;
+                transition: width 0.3s ease;
+                z-index: 1;
+            }
+
+            .captcha-text {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 600;
+                color: #666;
+                font-size: 14px;
+                z-index: 1;
+                pointer-events: none;
+            }
+
+            .captcha-success {
+                color: #4cd964;
+                font-weight: 600;
+                text-align: center;
+                margin-top: 10px;
+                font-size: 14px;
+                opacity: 0;
+                transform: translateY(-5px);
+                transition: all 0.3s ease;
+            }
+
+            .captcha-success.show {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            .captcha-error {
+                color: #ff3b30;
+                font-weight: 600;
+                text-align: center;
+                margin-top: 10px;
+                font-size: 14px;
+                opacity: 0;
+                transform: translateY(-5px);
+                transition: all 0.3s ease;
+            }
+
+            .captcha-error.show {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            .captcha-instruction {
+                font-size: 12px;
+                color: #7d7d7d;
+                text-align: center;
+                margin-top: 8px;
+            }
+
+            /* Адаптивность для мобильных устройств */
+            @media (max-width: 480px) {
+                .captcha-track {
+                    height: 50px;
+                }
+
+                .captcha-slider {
+                    width: 50px;
+                }
+
+                .captcha-title {
+                    font-size: 15px;
+                }
+
+                .captcha-text {
+                    font-size: 13px;
+                }
+            }
+
+            /* Стиль для неактивной кнопки отправки */
+            .submit-btn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                background-color: #cccccc !important;
+            }
+
+            .submit-btn {
+                transition: all 0.3s ease;
+            }
+        </style>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Элементы капчи
+                const captchaContainer = document.querySelector('.captcha-container');
+                if (!captchaContainer) return;
+
+                const captchaSlider = document.querySelector('.captcha-slider');
+                const captchaTrack = document.querySelector('.captcha-track');
+                const captchaProgress = document.querySelector('.captcha-progress');
+                const captchaText = document.querySelector('.captcha-text');
+                const captchaSuccess = document.querySelector('.captcha-success');
+                const captchaError = document.querySelector('.captcha-error');
+                const resetBtn = document.querySelector('.captcha-reset');
+                const submitBtn = document.querySelector('.submit-btn');
+
+                // Переменные для отслеживания состояния
+                let isCaptchaVerified = false;
+                let isDragging = false;
+                let startX = 0;
+                let sliderLeft = 0;
+                let trackRect = null;
+
+                // Получаем размеры элементов
+                function updateTrackRect() {
+                    trackRect = captchaTrack.getBoundingClientRect();
+                }
+
+                // Изначально блокируем кнопку отправки
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = '0.6';
+                    submitBtn.style.cursor = 'not-allowed';
+                }
+
+                // Функция сброса капчи
+                function resetCaptcha() {
+                    isCaptchaVerified = false;
+                    isDragging = false;
+                    sliderLeft = 0;
+
+                    // Сброс позиции слайдера (слева направо)
+                    captchaSlider.style.left = '0';
+                    captchaSlider.style.transform = 'translateX(0)';
+
+                    // Сброс прогресса
+                    captchaProgress.style.width = '0';
+
+                    // Сброс текста
+                    captchaText.textContent = 'Перетащите ползунок слева направо';
+
+                    // Скрыть сообщения
+                    captchaSuccess.classList.remove('show');
+                    captchaError.classList.remove('show');
+
+                    // Восстановить цвет и иконку слайдера
+                    captchaSlider.innerHTML = '<i class="fas fa-arrow-right"></i>';
+                    captchaSlider.style.background = 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)';
+
+                    // Заблокировать кнопку отправки
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.style.opacity = '0.6';
+                        submitBtn.style.cursor = 'not-allowed';
+                    }
+
+                    // Обновить размеры трека
+                    updateTrackRect();
+                }
+
+                // Функция проверки успешности капчи
+                function checkCaptchaSuccess() {
+                    const maxDistance = trackRect.width - captchaSlider.offsetWidth;
+                    const threshold = maxDistance * 0.9; // 90% от полного пути
+
+                    if (sliderLeft >= threshold) {
+                        isCaptchaVerified = true;
+
+                        // Завершаем движение до конца
+                        captchaSlider.style.left = `${maxDistance}px`;
+                        captchaProgress.style.width = '100%';
+
+                        // Показать успешное сообщение
+                        captchaSuccess.classList.add('show');
+                        captchaError.classList.remove('show');
+
+                        // Изменить текст и иконку слайдера
+                        captchaText.textContent = 'Капча пройдена!';
+                        captchaSlider.innerHTML = '<i class="fas fa-check"></i>';
+                        captchaSlider.style.background = 'linear-gradient(135deg, #4cd964 0%, #5ac8fa 100%)';
+
+                        // Разблокировать кнопку отправки
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.style.opacity = '1';
+                            submitBtn.style.cursor = 'pointer';
+                        }
+
+                        return true;
+                    } else {
+                        // Возвращаем слайдер в начало
+                        captchaSlider.style.left = '0';
+                        captchaSlider.style.transition = 'left 0.3s ease';
+                        captchaProgress.style.width = '0';
+                        captchaProgress.style.transition = 'width 0.3s ease';
+
+                        // Показать сообщение об ошибке
+                        captchaError.classList.add('show');
+                        captchaSuccess.classList.remove('show');
+
+                        // Через секунду скрыть ошибку
+                        setTimeout(() => {
+                            captchaError.classList.remove('show');
+                        }, 1000);
+
+                        // Заблокировать кнопку отправки
+                        if (submitBtn) {
+                            submitBtn.disabled = true;
+                            submitBtn.style.opacity = '0.6';
+                            submitBtn.style.cursor = 'not-allowed';
+                        }
+
+                        return false;
+                    }
+                }
+
+                // События для мыши (десктоп)
+                captchaSlider.addEventListener('mousedown', function(e) {
+                    if (isCaptchaVerified) return;
+
+                    isDragging = true;
+                    updateTrackRect();
+                    startX = e.clientX - trackRect.left;
+                    captchaSlider.style.cursor = 'grabbing';
+                    captchaSlider.style.transition = 'none';
+                    captchaProgress.style.transition = 'none';
+
+                    e.preventDefault();
+                });
+
+                document.addEventListener('mousemove', function(e) {
+                    if (!isDragging || isCaptchaVerified) return;
+
+                    const currentX = e.clientX - trackRect.left;
+                    const deltaX = currentX - startX;
+
+                    // Ограничиваем движение в пределах трека
+                    const maxDistance = trackRect.width - captchaSlider.offsetWidth;
+                    sliderLeft = Math.max(0, Math.min(deltaX, maxDistance));
+
+                    // Двигаем слайдер слева направо
+                    captchaSlider.style.left = `${sliderLeft}px`;
+
+                    // Обновляем прогресс-бар
+                    const progressPercent = (sliderLeft / maxDistance) * 100;
+                    captchaProgress.style.width = `${progressPercent}%`;
+
+                    // Обновляем текст
+                    if (progressPercent < 100) {
+                        captchaText.textContent = `Перетащите дальше... ${Math.round(progressPercent)}%`;
+                    }
+                });
+
+                document.addEventListener('mouseup', function() {
+                    if (!isDragging) return;
+
+                    isDragging = false;
+                    captchaSlider.style.cursor = 'grab';
+                    captchaSlider.style.transition = 'transform 0.1s, box-shadow 0.2s';
+                    captchaProgress.style.transition = 'width 0.3s ease';
+
+                    // Проверить успешность капчи
+                    checkCaptchaSuccess();
+                });
+
+                // События для касания (мобильные устройства)
+                captchaSlider.addEventListener('touchstart', function(e) {
+                    if (isCaptchaVerified) return;
+
+                    isDragging = true;
+                    updateTrackRect();
+                    startX = e.touches[0].clientX - trackRect.left;
+                    captchaSlider.style.transition = 'none';
+                    captchaProgress.style.transition = 'none';
+
+                    e.preventDefault();
+                });
+
+                document.addEventListener('touchmove', function(e) {
+                    if (!isDragging || isCaptchaVerified) return;
+
+                    const currentX = e.touches[0].clientX - trackRect.left;
+                    const deltaX = currentX - startX;
+
+                    // Ограничиваем движение в пределах трека
+                    const maxDistance = trackRect.width - captchaSlider.offsetWidth;
+                    sliderLeft = Math.max(0, Math.min(deltaX, maxDistance));
+
+                    // Двигаем слайдер слева направо
+                    captchaSlider.style.left = `${sliderLeft}px`;
+
+                    // Обновляем прогресс-бар
+                    const progressPercent = (sliderLeft / maxDistance) * 100;
+                    captchaProgress.style.width = `${progressPercent}%`;
+
+                    // Обновляем текст
+                    if (progressPercent < 100) {
+                        captchaText.textContent = `Перетащите дальше... ${Math.round(progressPercent)}%`;
+                    }
+
+                    e.preventDefault();
+                });
+
+                document.addEventListener('touchend', function() {
+                    if (!isDragging) return;
+
+                    isDragging = false;
+                    captchaSlider.style.transition = 'transform 0.1s, box-shadow 0.2s';
+                    captchaProgress.style.transition = 'width 0.3s ease';
+
+                    // Проверить успешность капчи
+                    checkCaptchaSuccess();
+                });
+
+                // Обработчик сброса капчи
+                if (resetBtn) {
+                    resetBtn.addEventListener('click', resetCaptcha);
+                }
+
+                // Обработчик изменения размера окна
+                window.addEventListener('resize', function() {
+                    if (!isCaptchaVerified) {
+                        updateTrackRect();
+                    }
+                });
+
+                // Изначальная настройка капчи
+                resetCaptcha();
+            });
+        </script>
