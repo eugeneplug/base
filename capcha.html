@@ -459,3 +459,305 @@
                 resetCaptcha();
             });
         </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- версия скрипта для неск капчей на стр -->
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Находим все контейнеры капчи
+        const captchaContainers = document.querySelectorAll('.captcha-container');
+        
+        // Инициализируем капчу для каждого контейнера
+        captchaContainers.forEach(function(captchaContainer) {
+            initCaptcha(captchaContainer);
+        });
+
+        // Функция инициализации капчи для конкретного контейнера
+        function initCaptcha(container) {
+            // Элементы капчи внутри конкретного контейнера
+            const captchaSlider = container.querySelector('.captcha-slider');
+            const captchaTrack = container.querySelector('.captcha-track');
+            const captchaProgress = container.querySelector('.captcha-progress');
+            const captchaText = container.querySelector('.captcha-text');
+            const captchaSuccess = container.querySelector('.captcha-success');
+            const captchaError = container.querySelector('.captcha-error');
+            const resetBtn = container.querySelector('.captcha-reset');
+            
+            // Находим кнопку отправки, связанную с этой формой
+            // Предполагаем, что кнопка находится в той же форме, что и капча
+            const form = container.closest('form');
+            const submitBtn = form ? form.querySelector('.submit-btn') : null;
+
+            // Переменные для отслеживания состояния
+            let isCaptchaVerified = false;
+            let isDragging = false;
+            let startX = 0;
+            let sliderLeft = 0;
+            let trackRect = null;
+
+            // Получаем размеры элементов
+            function updateTrackRect() {
+                trackRect = captchaTrack.getBoundingClientRect();
+            }
+
+            // Изначально блокируем кнопку отправки
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.6';
+                submitBtn.style.cursor = 'not-allowed';
+            }
+
+            // Функция сброса капчи
+            function resetCaptcha() {
+                isCaptchaVerified = false;
+                isDragging = false;
+                sliderLeft = 0;
+
+                // Сброс позиции слайдера
+                captchaSlider.style.left = '0';
+                captchaSlider.style.transform = 'translateX(0)';
+
+                // Сброс прогресса
+                captchaProgress.style.width = '0';
+
+                // Сброс текста
+                captchaText.textContent = 'Перетащите ползунок слева направо';
+
+                // Скрыть сообщения
+                captchaSuccess.classList.remove('show');
+                captchaError.classList.remove('show');
+
+                // Восстановить цвет и иконку слайдера
+                captchaSlider.innerHTML = '<i class="fas fa-arrow-right"></i>';
+                captchaSlider.style.background = 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)';
+
+                // Заблокировать кнопку отправки
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = '0.6';
+                    submitBtn.style.cursor = 'not-allowed';
+                }
+
+                // Обновить размеры трека
+                updateTrackRect();
+            }
+
+            // Функция проверки успешности капчи
+            function checkCaptchaSuccess() {
+                const maxDistance = trackRect.width - captchaSlider.offsetWidth;
+                const threshold = maxDistance * 0.9; // 90% от полного пути
+
+                if (sliderLeft >= threshold) {
+                    isCaptchaVerified = true;
+
+                    // Завершаем движение до конца
+                    captchaSlider.style.left = `${maxDistance}px`;
+                    captchaProgress.style.width = '100%';
+
+                    // Показать успешное сообщение
+                    captchaSuccess.classList.add('show');
+                    captchaError.classList.remove('show');
+
+                    // Изменить текст и иконку слайдера
+                    captchaText.textContent = 'Капча пройдена!';
+                    captchaSlider.innerHTML = '<i class="fas fa-check"></i>';
+                    captchaSlider.style.background = 'linear-gradient(135deg, #4cd964 0%, #5ac8fa 100%)';
+
+                    // Разблокировать кнопку отправки
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.style.opacity = '1';
+                        submitBtn.style.cursor = 'pointer';
+                    }
+
+                    return true;
+                } else {
+                    // Возвращаем слайдер в начало
+                    captchaSlider.style.left = '0';
+                    captchaSlider.style.transition = 'left 0.3s ease';
+                    captchaProgress.style.width = '0';
+                    captchaProgress.style.transition = 'width 0.3s ease';
+
+                    // Показать сообщение об ошибке
+                    captchaError.classList.add('show');
+                    captchaSuccess.classList.remove('show');
+
+                    // Через секунду скрыть ошибку
+                    setTimeout(() => {
+                        captchaError.classList.remove('show');
+                    }, 1000);
+
+                    // Заблокировать кнопку отправки
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.style.opacity = '0.6';
+                        submitBtn.style.cursor = 'not-allowed';
+                    }
+
+                    return false;
+                }
+            }
+
+            // События для мыши (десктоп)
+            captchaSlider.addEventListener('mousedown', function(e) {
+                if (isCaptchaVerified) return;
+
+                isDragging = true;
+                updateTrackRect();
+                startX = e.clientX - trackRect.left;
+                captchaSlider.style.cursor = 'grabbing';
+                captchaSlider.style.transition = 'none';
+                captchaProgress.style.transition = 'none';
+
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging || isCaptchaVerified) return;
+
+                const currentX = e.clientX - trackRect.left;
+                const deltaX = currentX - startX;
+
+                // Ограничиваем движение в пределах трека
+                const maxDistance = trackRect.width - captchaSlider.offsetWidth;
+                sliderLeft = Math.max(0, Math.min(deltaX, maxDistance));
+
+                // Двигаем слайдер
+                captchaSlider.style.left = `${sliderLeft}px`;
+
+                // Обновляем прогресс-бар
+                const progressPercent = (sliderLeft / maxDistance) * 100;
+                captchaProgress.style.width = `${progressPercent}%`;
+
+                // Обновляем текст
+                if (progressPercent < 100) {
+                    captchaText.textContent = `Перетащите дальше... ${Math.round(progressPercent)}%`;
+                }
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (!isDragging) return;
+
+                isDragging = false;
+                captchaSlider.style.cursor = 'grab';
+                captchaSlider.style.transition = 'transform 0.1s, box-shadow 0.2s';
+                captchaProgress.style.transition = 'width 0.3s ease';
+
+                // Проверить успешность капчи
+                checkCaptchaSuccess();
+            });
+
+            // События для касания (мобильные устройства)
+            captchaSlider.addEventListener('touchstart', function(e) {
+                if (isCaptchaVerified) return;
+
+                isDragging = true;
+                updateTrackRect();
+                startX = e.touches[0].clientX - trackRect.left;
+                captchaSlider.style.transition = 'none';
+                captchaProgress.style.transition = 'none';
+
+                e.preventDefault();
+            });
+
+            document.addEventListener('touchmove', function(e) {
+                if (!isDragging || isCaptchaVerified) return;
+
+                const currentX = e.touches[0].clientX - trackRect.left;
+                const deltaX = currentX - startX;
+
+                // Ограничиваем движение в пределах трека
+                const maxDistance = trackRect.width - captchaSlider.offsetWidth;
+                sliderLeft = Math.max(0, Math.min(deltaX, maxDistance));
+
+                // Двигаем слайдер
+                captchaSlider.style.left = `${sliderLeft}px`;
+
+                // Обновляем прогресс-бар
+                const progressPercent = (sliderLeft / maxDistance) * 100;
+                captchaProgress.style.width = `${progressPercent}%`;
+
+                // Обновляем текст
+                if (progressPercent < 100) {
+                    captchaText.textContent = `Перетащите дальше... ${Math.round(progressPercent)}%`;
+                }
+
+                e.preventDefault();
+            });
+
+            document.addEventListener('touchend', function() {
+                if (!isDragging) return;
+
+                isDragging = false;
+                captchaSlider.style.transition = 'transform 0.1s, box-shadow 0.2s';
+                captchaProgress.style.transition = 'width 0.3s ease';
+
+                // Проверить успешность капчи
+                checkCaptchaSuccess();
+            });
+
+            // Обработчик сброса капчи
+            if (resetBtn) {
+                resetBtn.addEventListener('click', resetCaptcha);
+            }
+
+            // Обработчик изменения размера окна
+            window.addEventListener('resize', function() {
+                if (!isCaptchaVerified) {
+                    updateTrackRect();
+                }
+            });
+
+            // Изначальная настройка капчи
+            resetCaptcha();
+        }
+    });
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
