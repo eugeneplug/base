@@ -159,30 +159,3 @@ get_header();
 
 
 
-
-
-
-
-add_action( 'init', 'pw24_post_type_rewrite' );
-add_action( 'pre_get_posts', 'pw24_add_post_type_to_get_posts_request' );
-
-function pw24_post_type_rewrite() {
-	global $wp_rewrite;
-
-	// в данном случае тип записи - hidden-page
-	$wp_rewrite->add_rewrite_tag( "%hidden-page%", '([^/]+)', "hidden-page=" );
-	$wp_rewrite->add_permastruct( 'hidden-page', '%hidden-page%' );
-}
-
-function pw24_add_post_type_to_get_posts_request( $query ){
-
-	if( is_admin() || ! $query->is_main_query() )
-		return; // не основной запрос
-
-	// не запрос с name параметром (как у постоянной страницы)
-	if( ! isset($query->query['page']) || empty($query->query['name']) || count($query->query) != 2 )
-		return;
-
-	// добавляем 'hidden-page'
-	$query->set( 'post_type', [ 'post', 'page', 'hidden-page' ] );
-
