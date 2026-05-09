@@ -132,7 +132,14 @@ function pw24_add_post_type_to_get_posts_request( $query ){
 
 
 
+<!-- для того чтоб не надо было в админке выбирать тип шаблона -->
 
+add_filter( 'single_template', function( $template ) {
+    if ( get_post_type() === 'blog' ) { <!-- тип записи -->
+        return get_template_directory() . '/templates/statii-template.php'; <!-- путь -->
+    }
+    return $template;
+});
 
 
 
