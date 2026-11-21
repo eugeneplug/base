@@ -41,3 +41,63 @@ jobs:
 
 
           https://github.com/eugeneplug/репозиторий/settings/secrets/actions
+
+
+
+
+
+-----------------------
+
+
+
+
+
+
+
+
+name: 🚀 Deploy to SpaceWeb SFTP
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v4
+
+      - name: 📂 Sync files via SFTP
+        uses: milanmk/actions-file-deployer@master
+        with:
+          remote-protocol: "sftp"
+          remote-host: ${{ secrets.SFTP_HOST }}      # IP или домен SpaceWeb
+          remote-user: ${{ secrets.SFTP_USERNAME }}  # Логин SSH
+          ssh-private-key: ${{ secrets.SFTP_KEY }}   # Приватный ключ
+          local-path: "./"
+          remote-path: "/home/t/tech1111/Manskiy/public_html"
+
+
+-----------------------------
+
+
+
+
+
+
+.github/workflows/deploy.yml
+
+
+
+
+
+
+
+
+
+
+
+
+
+
